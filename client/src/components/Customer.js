@@ -140,7 +140,7 @@ export const Customer = ()=> {
                     </div>
                     <br></br>
                     <br></br>
-                    <button onClick = {bookTestDrive}>Book Test Drive</button>
+                    <button onClick = {bookTestDrive}>Pay to book (1000 INR)</button>
 
                 </div>
             </div>    
