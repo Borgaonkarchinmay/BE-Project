@@ -6,11 +6,17 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 
+const { payment_success_rate_gauge, no_of_payments_counter } = require('./customMetrics');
 
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
 const cors = require('cors');
+
+var payment_count = 0;
+var successful_payment_count = 0;
+var success_rate = 0;
+
 
 //Initialization
 
@@ -77,6 +83,8 @@ router.post("/create-orders", async (req, res)=> {
 
 router.post("/success-verification", (req, res)=> {
     try {
+        no_of_payments_counter.inc();
+        
         // getting the details back from our font-end
         const {
             orderCreationId,
@@ -92,10 +100,19 @@ router.post("/success-verification", (req, res)=> {
 
         const digest = shasum.digest("hex");
 
+        payment_count = payment_count + 1;
+        
         // comaparing our digest with the actual signature
-        if (digest !== razorpaySignature)
+        if (digest !== razorpaySignature){
+            success_rate = successful_payment_count/payment_count;
+            payment_success_rate_gauge.set(success_rate);
             return res.status(400).json({ msg: "Transaction not legit!" });
+        }
         else{
+            successful_payment_count = successful_payment_count + 1;
+            success_rate = successful_payment_count/payment_count;
+            payment_success_rate_gauge.set(success_rate);
+
             res.json({
                 msg: "success",
                 orderId: razorpayOrderId,

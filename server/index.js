@@ -8,7 +8,7 @@ const executiveRoute = require('./routes/executiveRoute');
 const registrationRoutes = require('./routes/registrationRoutes');
 const testdriveRoute = require('./routes/testdriveRoute');
 const paymentRoute = require('./routes/paymentRoute');
-const client = require('prom-client');
+const { client } = require('./routes/customMetrics');
 const app = express();
 
 //Initialization
@@ -25,20 +25,6 @@ app.use("/api/executive", executiveRoute);
 app.use("/api/registration", registrationRoutes);
 app.use("/api/testdrive", testdriveRoute);
 app.use("/api/payment", paymentRoute);
-
-
-//Create a Gauge metric for a hypothetical metric named 'example_metric'
-const exampleMetric = new client.Gauge({
-    name: 'example_metric',
-    help: 'An example metric for demonstration purposes',
-});
-
-// Dummy data for the metric
-const exampleMetricValue = Math.random() * 100;
-
-// Set the metric value
-exampleMetric.set(exampleMetricValue);
-
 
 
 app.get('/metrics', (req, res) => {
