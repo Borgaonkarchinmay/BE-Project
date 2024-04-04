@@ -19,8 +19,19 @@ export const Customer = ()=> {
  
      Axios.defaults.withCredentials = true;
  
-     
+         
      //Required methods
+     useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
      useEffect(()=> {
          Axios.get("/api/registration/login").then((response) => {
              console.log("after cookie");
@@ -62,21 +73,57 @@ export const Customer = ()=> {
         });
     };
 
-    const bookTestDrive = ()=> {
-       if(td_date != null && td_slot.length > 0 && td_date.vehId != 0){     
-            Axios.post("/api/customer/bookTestDrive", 
-            { cid : userId,
-            vid : vehId,
-            date : td_date,
-            slot : td_slot
-            }).then(() => {
-                alert('success');
-            });
-        }
-        else{
-            alert("Fill required information");
-        }
-    };
+    const bookTestDrive = async ()=> {
+        
+        // creating a new order
+        const result = await Axios.post("/api/payment/create-orders", { 
+            amount : 100000, currency : "INR"
+        });
+
+        // Getting the order details back
+        const { amount, id: order_id, currency } = result.data;
+
+        const options = {
+            key: "rzp_test_tlLFJ93Dvp72rB", // Enter the Key ID generated from the Dashboard
+            amount: amount.toString(),
+            currency: currency,
+            name: "Testdrive Booking Portal",
+            description: "Booking Payment",
+            order_id: order_id,
+            handler: async function (response) {
+                const data = {
+                    orderCreationId: order_id,
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpaySignature: response.razorpay_signature,
+                };
+
+                const result = await Axios.post("/api/payment/success-verification", data);
+
+                if(result.data.msg == "success" && td_date != null && td_slot.length > 0 && td_date.vehId !== 0){     
+                  const bookingResponse = await Axios.post("/api/customer/bookTestDrive", { 
+                              cid : userId, 
+                              vid : vehId, 
+                              date : td_date, 
+                              slot : td_slot
+                  });
+                  alert('success');
+                  }
+                  else{
+                    alert("Fill required information & check pay status");
+                  }
+              
+            },
+            theme: {
+                color: "#61dafb",
+            },
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open(); 
+
+        
+      };
 
 
     //-----------------------------------------------------------------------
