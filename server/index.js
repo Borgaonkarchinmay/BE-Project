@@ -7,6 +7,7 @@ const customerFunctionalityRoutes = require('./routes/customerFunctionalityRoute
 const executiveRoute = require('./routes/executiveRoute');
 const registrationRoutes = require('./routes/registrationRoutes');
 const testdriveRoute = require('./routes/testdriveRoute');
+const paymentRoute = require('./routes/paymentRoute');
 const client = require('prom-client');
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/customer", customerFunctionalityRoutes);
 app.use("/api/executive", executiveRoute);
 app.use("/api/registration", registrationRoutes);
 app.use("/api/testdrive", testdriveRoute);
+app.use("/api/payment", paymentRoute);
 
 
 //Create a Gauge metric for a hypothetical metric named 'example_metric'
