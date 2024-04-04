@@ -8,7 +8,7 @@ const executiveRoute = require('./routes/executiveRoute');
 const registrationRoutes = require('./routes/registrationRoutes');
 const testdriveRoute = require('./routes/testdriveRoute');
 const paymentRoute = require('./routes/paymentRoute');
-const { client } = require('./routes/customMetrics');
+const { client, collectMysqlMetrics } = require('./routes/customMetrics');
 const app = express();
 
 //Initialization
@@ -17,6 +17,12 @@ const promBundle = require('express-prom-bundle');
 const metricsMiddleware = promBundle({ includeMethod: true });
 
 app.use(metricsMiddleware);
+
+
+app.use((req, res, next) => {
+    collectMysqlMetrics();
+    next();
+});
 
 app.use(express.json());
 app.use("/api/vehicle", vehicleRoute);
